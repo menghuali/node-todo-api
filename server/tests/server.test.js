@@ -58,20 +58,8 @@ describe('GET /todos', () => {
       .expect((res) => {
         var _todos = res.body.todos;
         expect(_todos.length).toBe(2);
-        // expect(_todos[0].text).toBe(todos[0].text);
-        // expect(_todos[1].text).toBe(todos[1].text);
+        expect(_todos[0].text).toBe(todos[0].text);
+        expect(_todos[1].text).toBe(todos[1].text);
       }).end(done);
-      // .end((err) => {
-      //   if (err) {
-      //     return done(err);
-      //   }
-      //
-      //   Todo.find().then((_todos) => {
-      //     expect(_todos.length).toBe(2);
-      //     expect(_todos[0].text).toBe(todos[0].text);
-      //     expect(_todos[1].text).toBe(todos[1].text);
-      //     done();
-      //   }).catch((e) => done(e));
-      // });
   });
 });
