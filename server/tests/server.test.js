@@ -1,12 +1,19 @@
 const request = require('supertest');
 const expect = require('expect');
+const {ObjectID} = require('mongodb');
 
 const {app} = require('./../server.js');
 const {Todo} = require('./../models/todo.js');
 
 const todos = [
-  {text: '1st text todo'},
-  {text: '2nd text todo'}
+  {
+    _id: new ObjectID(),
+    text: '1st text todo'
+  },
+  {
+    _id: new ObjectID(),
+    text: '2nd text todo'
+  }
 ];
 
 // Interesting feature. Can be used for event engine?
@@ -61,5 +68,27 @@ describe('GET /todos', () => {
         expect(_todos[0].text).toBe(todos[0].text);
         expect(_todos[1].text).toBe(todos[1].text);
       }).end(done);
+  });
+});
+
+describe('GET /todo/:id', () => {
+  var _expect = todos[0];
+  console.log(`/todo/${_expect._id.toHexString()}`);
+  it('should return todo', (done) => {
+    request(app).get(`/todo/${_expect._id.toHexString()}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe(_expect.text);
+      })
+      .end(done);
+  });
+
+  it('should return 404 if todo not found', (done) => {
+    request(app).get(`/todo/${new ObjectID().toHexString()}`)
+      .expect(404).end(done);
+  });
+
+  it('should return 404 for non-object ids', (done) => {
+    request(app).get('/todo/123').expect(404).end(done);
   });
 });
