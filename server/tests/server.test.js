@@ -71,11 +71,11 @@ describe('GET /todos', () => {
   });
 });
 
-describe('GET /todo/:id', () => {
+describe('GET /todos/:id', () => {
   var _expect = todos[0];
-  console.log(`/todo/${_expect._id.toHexString()}`);
+  console.log(`/todos/${_expect._id.toHexString()}`);
   it('should return todo', (done) => {
-    request(app).get(`/todo/${_expect._id.toHexString()}`)
+    request(app).get(`/todos/${_expect._id.toHexString()}`)
       .expect(200)
       .expect((res) => {
         expect(res.body.todo.text).toBe(_expect.text);
@@ -84,11 +84,11 @@ describe('GET /todo/:id', () => {
   });
 
   it('should return 404 if todo not found', (done) => {
-    request(app).get(`/todo/${new ObjectID().toHexString()}`)
+    request(app).get(`/todos/${new ObjectID().toHexString()}`)
       .expect(404).end(done);
   });
 
   it('should return 404 for non-object ids', (done) => {
-    request(app).get('/todo/123').expect(404).end(done);
+    request(app).get('/todos/123').expect(404).end(done);
   });
 });
