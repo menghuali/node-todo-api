@@ -92,3 +92,22 @@ describe('GET /todos/:id', () => {
     request(app).get('/todos/123').expect(404).end(done);
   });
 });
+
+describe('DELETE /todos/:id', () => {
+  it('should return 404 because of invalid object ID', (done) => {
+    request(app).delete('/todos/123').expect(404).end(done);
+  });
+
+  it('should return 404 because data not found', (done) => {
+    request(app).delete(`/todos/${new ObjectID().toHexString()}`).expect(404).end(done);
+  });
+
+  it('should return 200 when data found', (done) => {
+    request(app).delete(`/todos/${todos[0]._id}`)
+      .expect(200)
+      .expect((res) => {
+        var actual = res.body.todo;
+        expect(actual.text).toBe(todos[0].text);
+      }).end(done);
+  });
+});
