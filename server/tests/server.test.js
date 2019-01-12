@@ -103,11 +103,15 @@ describe('DELETE /todos/:id', () => {
   });
 
   it('should return 200 when data found', (done) => {
-    request(app).delete(`/todos/${todos[0]._id}`)
+    request(app).delete(`/todos/${todos[0]._id.toHexString()}`)
       .expect(200)
       .expect((res) => {
         var actual = res.body.todo;
+        expect(actual._id).toBe(todos[0]._id.toHexString());
         expect(actual.text).toBe(todos[0].text);
+        Todo.findById(todos[0]._id.toHexString()).then((todo) => {
+          expect(todo).toNotExist();
+        }).catch(e => done(e));
       }).end(done);
   });
 });
