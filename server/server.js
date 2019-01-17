@@ -79,7 +79,7 @@ app.patch('/todos/:id', (req, res) => {
       res.status(404).send();
     }
     res.send({todo});
-  }).catch(e => res.status(400).send(e));
+  }).catch(e => res.status(400).send());
 });
 
 app.post('/users', (req, res) => {
