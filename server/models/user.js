@@ -67,6 +67,7 @@ UserSchema.statics.findByToken = function (token) {
   });
 };
 
+// Define pre-action for 'save'
 UserSchema.pre('save', function (next) {
   var user = this;
   if (user.isModified('password')) {

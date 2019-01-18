@@ -1,27 +1,14 @@
 const request = require('supertest');
 const expect = require('expect');
 const {ObjectID} = require('mongodb');
-
 const {app} = require('./../server.js');
 const {Todo} = require('./../models/todo.js');
-
-const todos = [
-  {
-    _id: new ObjectID(),
-    text: '1st text todo'
-  },
-  {
-    _id: new ObjectID(),
-    text: '2nd text todo'
-  }
-];
+const {User} = require('./../models/user');
+const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 
 // Interesting feature. Can be used for event engine?
-beforeEach((done) => {
-  Todo.deleteMany({}).then(() => {
-    return Todo.insertMany(todos);
-  }).then(() => done());
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
   it('should create a new todo', (done) => {
@@ -189,5 +176,91 @@ describe('PATCH /todos/:id', () => {
           done();
         }).catch((e) => done(e));
       });
+  });
+});
+
+describe('POST /users', () => {
+  it('it should return 400 if the email is null', (done) => {
+    request(app).post('/users').send({
+      password: 'password!'
+    }).expect(400).end(done);
+  });
+
+  it('it should return 400 if the email is invalid', (done) => {
+    request(app).post('/users').send({
+      email: 'invalid',
+      password: 'password!'
+    }).expect(400).end(done);
+  });
+
+  it('it should return 400 if the email is already used', (done) => {
+    request(app).post('/users').send({
+      email: users[0].email,
+      password: 'password!'
+    }).expect(400).end(done);
+  });
+
+  it('it should return 400 if the password is null', (done) => {
+    request(app).post('/users').send({
+      email: 'mli@gmail.com'
+    }).expect(400).end(done);
+  });
+
+  it('it should return 400 if the password is too short', (done) => {
+    request(app).post('/users').send({
+      email: 'mli@gmail.com',
+      password: 'pass!'
+    }).expect(400).end(done);
+  });
+
+  it('it should create user and return authentication token', (done) => {
+    var email = 'charlie@gmail.com';
+    var password = 'password!';
+    var token, id;
+    request(app).post('/users').send({
+      email, password
+    }).expect(200)
+      .expect((res) => {
+        expect(res.body.email).toBe(email);
+        id = res.body._id;
+        expect(id).toExist();
+        expect(ObjectID.isValid(id)).toBe(true);
+        token = res.header['x-auth'];
+        expect(token).toExist();
+      }).end((err) => {
+        if (err) {
+          return done(err);
+        }
+        if (token) {
+          User.findByToken(token).then((user) => {
+            expect(user.email).toBe(email);
+            expect(user._id.toHexString()).toBe(id);
+            expect(password).toNotBe(user.password);
+            done();
+          }).catch((e) => done(e));
+        }
+      });
+  });
+});
+
+describe('GET /users/me', () => {
+  it('should return 401 if no authentication', (done) => {
+    request(app).get('/users/me').send().expect(401).end(done);
+  });
+
+  it('should return 401 if not authenticated', (done) => {
+    request(app).get('/users/me').set('x-auth', 'abcd').send().expect(401).end(done);
+  });
+
+  it('should return a user if authenticated', (done) => {
+    request(app).get('/users/me')
+      .set('x-auth', users[0].tokens[0].token)
+      .send()
+      .expect(200)
+      .expect((res) => {
+        expect(res.body._id).toBe(users[0]._id.toHexString());
+        expect(res.body.email).toBe(users[0].email);
+        expect(res.body.password).toNotExist();
+    }).end(done);
   });
 });
