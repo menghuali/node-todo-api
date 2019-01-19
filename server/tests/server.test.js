@@ -264,3 +264,55 @@ describe('GET /users/me', () => {
     }).end(done);
   });
 });
+
+describe('POST /users/login', () => {
+  var email = users[0].email;
+  var password = 'userOnePass';
+  var id = users[0]._id.toHexString();
+
+  it('should return 400 if email is missing', (done) => {
+    request(app).post('/users/login').send({password}).expect(400).end(done);
+  });
+
+  it('should return 400 if password is missing', (done) => {
+    request(app).post('/users/login').send({email}).expect(400).end(done);
+  });
+
+  it('should return 400 if user is not found', (done) => {
+    request(app).post('/users/login').send({
+      email: 'dummy@gamil.com',
+      password
+    }).expect(400).end(done);
+  });
+
+  it('should return 400 if password is wrong', (done) => {
+    request(app).post('/users/login').send({
+      email,
+      password: 'wrong@password'
+    }).expect(400).end(done);
+  });
+
+  it('shoould return user and auth token if credential is correct', (done) => {
+    var token;
+    request(app).post('/users/login').send({email, password})
+      .expect(200)
+      .expect((res) => {
+        expect(res.body._id).toBe(id);
+        expect(res.body.email).toBe(email);
+        expect(res.body.password).toNotExist();
+        expect(res.header['x-auth']).toExist();
+        token = res.header['x-auth'];
+      })
+      .end((err) => {
+        if (err) {
+          return done(err);
+        }
+        // Test that the user can be found by the returned token.
+        User.findByToken(token).then((user) => {
+          expect(user.email).toBe(email);
+          expect(user._id.toHexString()).toBe(id);
+          done();
+        }).catch((e) => done(e));
+      });
+  });
+});
