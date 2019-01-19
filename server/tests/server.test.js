@@ -316,3 +316,24 @@ describe('POST /users/login', () => {
       });
   });
 });
+
+describe('DELETE /users/me/token', () => {
+  var token = users[0].tokens[0].token;
+  it('should delete the token', (done) => {
+    request(app).delete('/users/me/token').set('x-auth', token).send()
+    .expect(200)
+    .end((err) => {
+      if (err) {
+        return done(err);
+      }
+      User.findById(users[0]._id).then((user) => {
+        expect(user).toExist();
+        expect(user.tokens.length).toBe(0);
+        request(app).get('/users/me')
+          .set('x-auth', token)
+          .send()
+          .expect(401).end(done);
+      }).catch((e) => done(e));
+    });
+  });
+});
