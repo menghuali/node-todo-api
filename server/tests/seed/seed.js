@@ -3,23 +3,6 @@ const {Todo} = require('./../../models/todo.js');
 const {User} = require('./../../models/user.js');
 const jwt = require('jsonwebtoken');
 
-const todos = [
-  {
-    _id: new ObjectID(),
-    text: '1st text todo'
-  },
-  {
-    _id: new ObjectID(),
-    text: '2nd text todo'
-  }
-];
-
-const populateTodos = (done) => {
-  Todo.deleteMany({}).then(() => {
-    return Todo.insertMany(todos);
-  }).then(() => done());
-};
-
 var userOneId = new ObjectID();
 var userTwoId = new ObjectID();
 
@@ -44,6 +27,25 @@ const populateUsers = (done) => {
     var userTwo = new User(users[1]).save();
     // What until all promises are done.
     return Promise.all([userOne, userTwo]);
+  }).then(() => done());
+};
+
+const todos = [
+  {
+    _id: new ObjectID(),
+    text: '1st text todo',
+    _creator: userOneId
+  },
+  {
+    _id: new ObjectID(),
+    text: '2nd text todo',
+    _creator: userTwoId
+  }
+];
+
+const populateTodos = (done) => {
+  Todo.deleteMany({}).then(() => {
+    return Todo.insertMany(todos);
   }).then(() => done());
 };
 
