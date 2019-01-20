@@ -13,7 +13,7 @@ beforeEach(populateTodos);
 
 var wrongToken = jwt.sign(
   { _id: new ObjectID(), access: 'auth' },
-  'salt').toString();
+  process.env.JWT_SECRETE).toString();
 
 describe('POST /todos', () => {
   it('should get 401 if no authentication', (done) => {
