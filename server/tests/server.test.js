@@ -110,6 +110,15 @@ describe('GET /todos/:id', () => {
       .end(done);
   });
 
+  it('should not return todo created by other user',
+    (done) => {
+      request(app)
+        .get(`/todos/${todos[1]._id.toHexString()}`)
+        .set('x-auth', users[0].tokens[0].token)
+        .expect(404)
+        .end(done);
+    });
+
   it('should return 404 if todo not found', (done) => {
     request(app)
       .get(`/todos/${new ObjectID().toHexString()}`)
@@ -173,6 +182,24 @@ describe('DELETE /todos/:id', () => {
         }).catch((e) => done(e));
       });
   });
+
+  it('should not delete todo created by other user',
+    (done) => {
+      request(app)
+        .delete(`/todos/${todos[1]._id.toHexString()}`)
+        .set('x-auth', users[0].tokens[0].token)
+        .expect(404)
+        .end((err) => {
+          if(err) {
+            return done(err);
+          }
+          Todo.findById(todos[1]._id.toHexString()).then((todo) => {
+            expect(todo).toExist();
+            done();
+          }).catch((e) => done(e));
+        });
+    });
+
 });
 
 describe('PATCH /todos/:id', () => {
@@ -266,6 +293,30 @@ describe('PATCH /todos/:id', () => {
           expect(todo.completedAt).toBeA('number');
           done();
         }).catch((e) => done(e));
+      });
+  });
+
+  it('should return 404 when updating the todo created by other user', (done) => {
+    request(app)
+      .patch(`/todos/${todos[1]._id.toHexString()}`)
+      .set('x-auth', users[0].tokens[0].token)
+      .send({
+        text: 'text2',
+        completed: true,
+        misc: 'misc'
+      })
+      .expect(404)
+      .end((err) => {
+        if (err) {
+          return done(err);
+        }
+        Todo.findById(todos[1]._id.toHexString())
+          .then((todo) => {
+            expect(todo.text).toBe(todos[1].text);
+            expect(todo.completed).toBe(false);
+            expect(todo.completedAt).toNotExist();
+            done();
+          }).catch((e) => done(e));
       });
   });
 });

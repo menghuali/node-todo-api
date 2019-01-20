@@ -42,7 +42,7 @@ app.get('/todos/:id', authenticate, (req, res) => {
   }
 
   Todo.findOne({
-    _id: new ObjectID(id),
+    _id: id,
     _creator: req.user._id})
     .then((todo) => {
       if (todo === null) {
@@ -59,7 +59,7 @@ app.delete('/todos/:id', authenticate, (req, res) => {
     return res.status(404).send();
   }
   Todo.findOneAndDelete({
-    _id: new ObjectID(id),
+    _id: id,
     _creator: req.user._id
   }).then((todo) => {
     if (todo === null) {
@@ -86,7 +86,7 @@ app.patch('/todos/:id', authenticate, (req, res) => {
     body.completedAt = null;
   }
   Todo.findOneAndUpdate({
-    _id: new ObjectID(id),
+    _id: id,
     _creator: req.user._id
     },
     {$set: body}, {new: true}).then((todo) => {
